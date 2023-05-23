@@ -18,15 +18,21 @@ CREATE TABLE IF NOT EXISTS table_games
     -- 0 = Not exist
     -- 1 = Ongoing
     -- 2 = Over
+    playerO VARCHAR(45),
+    playerX VARCHAR(45),
     winner VARCHAR(1)
 );
 
 DELIMITER |
 
-DROP PROCEDURE IF EXISTS newGame|
-CREATE PROCEDURE createNewGame(gameId INT)
+DROP PROCEDURE IF EXISTS createNewGame|
+CREATE PROCEDURE createNewGame(gameId INT, playerO VARCHAR(45), playerX VARCHAR(45))
 BEGIN
-	INSERT INTO table_games VALUES (gameId, 'O', 1);
+	SET @isGameExist = (SELECT boardId from table_games WHERE table_games.boardID = gameId);
+    
+    IF @isGameExist != NULL
+		THEN INSERT INTO table_games VALUES (gameId, 'O', 1, playerO, playerX);
+    END IF;
 END|
 
 DROP PROCEDURE IF EXISTS  playGame|
@@ -66,8 +72,11 @@ BEGIN
 			UPDATE table_games SET turn = CASE WHEN turn = 'X' THEN 'O' WHEN turn = 'O' THEN 'X' END WHERE tables_games.boardId = boardId;
 			CALL checkForVictory(boardId);
     ELSE
-		SET @PLAYER = (SELECT turn FROM table_games WHERE table_games.boardId = boardId);
-		SELECT (CONCAT('This isn\'t your turn. The winner is ', @PLAYER));
+		SET @PLAYER = 	CASE
+							WHEN (SELECT turn FROM table_games WHERE table_games.boardId = boardId) = 'X' THEN CONCAT((SELECT playerX FROM table_games WHERE table_games.boardId = boardId))
+                            WHEN (SELECT turn FROM table_games WHERE table_games.boardId = boardId) = 'O' THEN CONCAT((SELECT playerO FROM table_games WHERE table_games.boardId = boardId))
+						END;
+		SELECT (CONCAT('This isn\'t your turn. The winner is ', @PLAYER, ' (', (SELECT turn FROM table_games WHERE table_games.boardId = boardId), ')'));
 		CALL cheatHandle(boardId);
 	END IF;
 END|
@@ -87,28 +96,76 @@ BEGIN
         @tile22 = (SELECT value FROM table_boards WHERE id = boardId AND x = 2 AND y = 2);
 	
     IF @tile00 = @tile01 AND @tile01 = @tile02
-     THEN SELECT(CONCAT(@tile00, ' is the winner!'));
+     THEN 
+		SELECT(CONCAT(CASE
+						WHEN @tile00 = 'X' THEN (SELECT playerX FROM table_games WHERE table_games.boardId = boardId)
+                        WHEN @tile00 = 'O' THEN (SELECT playerO FROM table_games WHERE table_games.boardId = boardId)
+					  END, ' is the winner!'));
+        UPDATE table_games SET winner = @tile00 WHERE table_games.boardId = boardId;
+        UPDATE table_games SET gameState = 2 WHERE table_games.boardId = boardId;
 	END IF;
     IF @tile10 = @tile11 AND @tile11 = @tile12
-     THEN SELECT(CONCAT(@tile10, ' is the winner!'));
+     THEN 
+		SELECT(CONCAT(CASE
+						WHEN @tile10 = 'X' THEN (SELECT playerX FROM table_games WHERE table_games.boardId = boardId)
+                        WHEN @tile10 = 'O' THEN (SELECT playerO FROM table_games WHERE table_games.boardId = boardId)
+					  END, ' is the winner!'));
+        UPDATE table_games SET winner = @tile10 WHERE table_games.boardId = boardId;
+        UPDATE table_games SET gameState = 2 WHERE table_games.boardId = boardId;
 	END IF;
     IF @tile20 = @tile21 AND @tile21 = @tile22
-     THEN SELECT(CONCAT(@tile20, ' is the winner!'));
+     THEN 
+		SELECT(CONCAT(CASE
+						WHEN @tile20 = 'X' THEN (SELECT playerX FROM table_games WHERE table_games.boardId = boardId)
+                        WHEN @tile20 = 'O' THEN (SELECT playerO FROM table_games WHERE table_games.boardId = boardId)
+					  END, ' is the winner!'));
+        UPDATE table_games SET winner = @tile20 WHERE table_games.boardId = boardId;
+        UPDATE table_games SET gameState = 2 WHERE table_games.boardId = boardId;
 	END IF;
     IF @tile00 = @tile10 AND @tile10 = @tile20
-     THEN SELECT(CONCAT(@tile00, ' is the winner!'));
+     THEN 
+		SELECT(CONCAT(CASE
+						WHEN @tile00 = 'X' THEN (SELECT playerX FROM table_games WHERE table_games.boardId = boardId)
+                        WHEN @tile00 = 'O' THEN (SELECT playerO FROM table_games WHERE table_games.boardId = boardId)
+					  END, ' is the winner!'));
+        UPDATE table_games SET winner = @tile00 WHERE table_games.boardId = boardId;
+        UPDATE table_games SET gameState = 2 WHERE table_games.boardId = boardId;
 	END IF;
     IF @tile01 = @tile11 AND @tile11 = @tile21
-     THEN SELECT(CONCAT(@tile01, ' is the winner!'));
+     THEN 
+		SELECT(CONCAT(CASE
+						WHEN @tile01 = 'X' THEN (SELECT playerX FROM table_games WHERE table_games.boardId = boardId)
+                        WHEN @tile01 = 'O' THEN (SELECT playerO FROM table_games WHERE table_games.boardId = boardId)
+					  END, ' is the winner!'));
+        UPDATE table_games SET winner = @tile01 WHERE table_games.boardId = boardId;
+        UPDATE table_games SET gameState = 2 WHERE table_games.boardId = boardId;
 	END IF;
     IF @tile02 = @tile21 AND @tile21 = @tile22
-     THEN SELECT(CONCAT(@tile02, ' is the winner!'));
+     THEN 
+		SELECT(CONCAT(CASE
+						WHEN @tile02 = 'X' THEN (SELECT playerX FROM table_games WHERE table_games.boardId = boardId)
+                        WHEN @tile02 = 'O' THEN (SELECT playerO FROM table_games WHERE table_games.boardId = boardId)
+					  END, ' is the winner!'));
+        UPDATE table_games SET winner = @tile02 WHERE table_games.boardId = boardId;
+        UPDATE table_games SET gameState = 2 WHERE table_games.boardId = boardId;
 	END IF;
     IF @tile00 = @tile11 AND @tile11 = @tile22
-     THEN SELECT(CONCAT(@tile00, ' is the winner!'));
+     THEN 
+		SELECT(CONCAT(CASE
+						WHEN @tile00 = 'X' THEN (SELECT playerX FROM table_games WHERE table_games.boardId = boardId)
+                        WHEN @tile00 = 'O' THEN (SELECT playerO FROM table_games WHERE table_games.boardId = boardId)
+					  END, ' is the winner!'));
+        UPDATE table_games SET winner = @tile00 WHERE table_games.boardId = boardId;
+        UPDATE table_games SET gameState = 2 WHERE table_games.boardId = boardId;
 	END IF;
     IF @tile02 = @tile11 AND @tile11 = @tile20
-     THEN SELECT(CONCAT(@tile00, ' is the winner!'));
+     THEN 
+		SELECT(CONCAT(CASE
+						WHEN @tile02 = 'X' THEN (SELECT playerX FROM table_games WHERE table_games.boardId = boardId)
+                        WHEN @tile02 = 'O' THEN (SELECT playerO FROM table_games WHERE table_games.boardId = boardId)
+					  END, ' is the winner!'));
+        UPDATE table_games SET winner = @tile02 WHERE table_games.boardId = boardId;
+        UPDATE table_games SET gameState = 2 WHERE table_games.boardId = boardId;
 	END IF;
 END|
 
@@ -125,7 +182,9 @@ BEGIN
         @tile20 = (SELECT value FROM table_boards WHERE id = boardId AND x = 2 AND y = 0),
         @tile21 = (SELECT value FROM table_boards WHERE id = boardId AND x = 2 AND y = 1),
         @tile22 = (SELECT value FROM table_boards WHERE id = boardId AND x = 2 AND y = 2),
-        @gameStatus = (SELECT gameState FROM table_games WHERE table_games.boardId = boardId);
+        @gameStatus = (SELECT gameState FROM table_games WHERE table_games.boardId = boardId),
+        @playerO = (SELECT playerO FROM table_games WHERE table_games.boardId = boardId),
+        @playerX = (SELECT playerO FROM table_games WHERE table_games.boardId = boardId);
         
 	IF @tile00 = NULL
 		THEN SET @tile00 = '-';
@@ -157,12 +216,23 @@ BEGIN
     SELECT CONCAT(
     CASE
 		WHEN @gameStatus = null THEN 'This game does not exist'
-        WHEN @gameStatus = 1 THEN CONCAT('It is ', (SELECT turn FROM table_games WHERE table_games.boardId = boardId), ' turn\'s to play')
-        WHEN @gameStatus = 2 THEN CONCAT('This game is over, the winner is ', (SELECT winner FROM table_games WHERE table_games.boardId = boardId))
+        WHEN @gameStatus = 1 THEN CONCAT('Game number: ', boardId, char(10),
+										'It is ', 
+										CASE
+											WHEN (SELECT turn FROM table_games WHERE table_games.boardId = boardId) = 'X' THEN (SELECT playerX from table_games WHERE table_games.boardId = boardId)
+                                            WHEN (SELECT turn FROM table_games WHERE table_games.boardId = boardId) = 'O' THEN (SELECT playerO from table_games WHERE table_games.boardId = boardId)
+										END, ' (', (SELECT turn FROM table_games WHERE table_games.boardId = boardId), ')', ' turn\'s to play')
+        WHEN @gameStatus = 2 THEN CONCAT('Game number: ', boardId, char(10),
+										'This game is over, the winner is ', 
+										CASE
+											WHEN (SELECT winner FROM table_games WHERE table_games.boardId = boardId) = 'X' THEN (SELECT playerX from table_games WHERE table_games.boardId = boardId)
+                                            WHEN (SELECT winner FROM table_games WHERE table_games.boardId = boardId) = 'O' THEN (SELECT playerO from table_games WHERE table_games.boardId = boardId)
+										END)
 	END,
     @tile00, @tile01, @tile02, Char(10), 
     @tile10, @tile11, @tile12, Char(10), 
-    @tile02, @tile12, @tile22);
+    @tile02, @tile12, @tile22, Char(10),
+    @playerO, ' vs ', @playerX);
 END|
 
 DROP PROCEDURE IF EXISTS cheatHandle|
