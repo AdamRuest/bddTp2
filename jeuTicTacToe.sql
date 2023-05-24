@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS `mydb`.`table_joueurs` (
   `nom` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`));
 
-DROP TABle IF EXISTS table_parties;
+DROP TABLE IF EXISTS table_parties;
 CREATE TABLE IF NOT EXISTS `mydb`.`table_parties` (
   `idPartie` INT NOT NULL,
   `tour` VARCHAR(1) DEFAULT 'O' NOT NULL,
@@ -314,8 +314,8 @@ BEGIN
     SET winnerPrompt := CONCAT('The winner is ', winnerName, '(', CASE WHEN joueur = 'X' THEN 'O' WHEN joueur = 'O' THEN 'X' END, ')');
 END|
 
-DROP PROCEDURE IF EXISTS displayGame|
-CREATE PROCEDURE displayGame(gameId INT, OUT returnValue VARCHAR(1000))
+DROP PROCEDURE IF EXISTS connaitreEtatPartie|
+CREATE PROCEDURE connaitreEtatPartie(gameId INT, OUT returnValue VARCHAR(1000))
 BEGIN
 	DECLARE tile00 VARCHAR(1);
     DECLARE tile01 VARCHAR(1);
@@ -366,3 +366,6 @@ BEGIN
     playerO, ' vs ', playerX);
 END|
 
+CREATE VIEW parties_en_cours AS SELECT a.idPartie, b.nom FROM table_parties a, table_joueurs b WHERE a.etatDeLaPartie = 1 AND b.id = a.idJoueurX OR b.id = a.idJoueurO;
+
+DELIMITER ;
